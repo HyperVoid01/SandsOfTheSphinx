@@ -1,0 +1,212 @@
+using System;
+using System.Collections;
+using System.Text;
+using UnityEngine;
+using UnityEngine.Networking;
+using System.Collections.Generic;
+using Random = System.Random;
+
+public class OllamaManager : MonoBehaviour
+{
+    public static OllamaManager Instance;
+
+    private const string API_URL = "http://localhost:11434/api/generate";
+    
+    private List<string> previousRiddles =
+        new List<string>();
+    
+    private string[] themes =
+    {
+        "Pharaohs",
+        "Pyramids",
+        "Ancient Egypt",
+        "The Nile",
+        "Hieroglyphs",
+        "Scarab Beetles",
+        "Egyptian Gods",
+        "Tombs",
+        "Deserts",
+        "Curses",
+        "Sphinxes",
+        "Mummies",
+        "Ancient Magic",
+        "Obelisks",
+        "Temples"
+    };
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public void GenerateRiddle(Action<RiddleData> callback)
+    {
+        StartCoroutine(GenerateRiddleCoroutine(callback));
+    }
+
+    IEnumerator GenerateRiddleCoroutine(Action<RiddleData> callback)
+    {
+        string chosenTheme =
+            themes[UnityEngine.Random.Range(0, themes.Length)];
+        
+        string difficulty = "easy";
+        
+        if (GameManager.Instance.score > 5)
+            difficulty = "medium";
+        
+        if (GameManager.Instance.score > 10)
+            difficulty = "hard";
+        
+        string previousText = "";
+        
+        foreach (string riddle in previousRiddles)
+        {
+            previousText += "- " + riddle + "\n";
+        }
+        
+        string prompt =
+        $@"Generate a UNIQUE Egyptian sphinx riddle.
+        
+        Theme:
+        {chosenTheme}
+        
+        Difficulty:
+        {difficulty}
+        
+        IMPORTANT:
+        Do NOT repeat ideas similar to these previous riddles:
+        
+        {previousText}
+        
+        STRICT RULES:
+        - Every riddle must feel different
+        - Use different wording each time
+        - Avoid repeating answers
+        - EXACTLY 3 answers
+        - ONLY 1 correct answer
+        - correctIndex must be 0, 1, or 2
+        - Answers should not always be objects
+        - Sometimes use concepts
+        - Sometimes use places
+        - Sometimes use gods
+        - Sometimes use creatures
+        
+        OUTPUT FORMAT:
+        
+        {{
+        ""question"":""Your riddle"",
+        ""answers"":[
+        ""Answer 1"",
+        ""Answer 2"",
+        ""Answer 3""
+        ],
+        ""correctIndex"":0
+        }}
+        
+        ONLY output raw JSON.
+        No markdown.
+        No explanation.";
+        
+        
+        OllamaRequest requestData = new OllamaRequest
+        {
+            model = "gemma3:4b",
+            prompt = prompt,
+            stream = false,
+
+            options = new OllamaOptions
+            {
+                temperature = 1.35f,
+                top_p = 0.97f,
+                seed = UnityEngine.Random.Range(0, 999999)
+            }
+        };
+
+        string json = JsonUtility.ToJson(requestData);
+
+        UnityWebRequest request = new UnityWebRequest(API_URL, "POST");
+
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+
+        request.SetRequestHeader("Content-Type", "application/json");
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            string raw = request.downloadHandler.text;
+
+            OllamaResponse response =
+                JsonUtility.FromJson<OllamaResponse>(raw);
+
+            string cleanJson = response.response
+                .Replace("```json", "")
+                .Replace("```", "")
+                .Trim();
+            
+            RiddleData data =
+                JsonUtility.FromJson<RiddleData>(cleanJson);
+            
+            if (data == null)
+            {
+                Debug.LogError("Failed to parse JSON");
+                yield break;
+            }
+            
+            if (string.IsNullOrEmpty(data.question))
+            {
+                Debug.LogError("Question missing");
+                yield break;
+            }
+            
+            if (data.answers == null || data.answers.Length != 3)
+            {
+                Debug.LogError("AI returned invalid answers");
+            
+                GenerateRiddle(callback);
+            
+                yield break;
+            }
+            
+            previousRiddles.Add(data.question);
+            
+            if (previousRiddles.Count > 20)
+            {
+                previousRiddles.RemoveAt(0);
+            }
+            
+            callback?.Invoke(data);
+        }
+        else
+        {
+            Debug.LogError(request.error);
+        }
+    }
+}
+
+[Serializable]
+public class OllamaRequest
+{
+    public string model;
+    public string prompt;
+    public bool stream;
+
+    public OllamaOptions options;
+}
+
+[Serializable]
+public class OllamaOptions
+{
+    public float temperature;
+    public int seed;
+    public float top_p;
+}
+
+[Serializable]
+public class OllamaResponse
+{
+    public string response;
+}
