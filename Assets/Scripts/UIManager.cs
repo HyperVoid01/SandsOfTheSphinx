@@ -24,6 +24,7 @@ public class UIManager : MonoBehaviour
     public GameObject loadingPanel;
     public TMP_Text livesText;
     public TMP_Text endScoreText;
+    public TMP_Text modelName;
     
     [Header("Menus")]
     public GameObject hud;

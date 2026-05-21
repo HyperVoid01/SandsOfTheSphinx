@@ -11,6 +11,9 @@ public class OllamaManager : MonoBehaviour
     public static OllamaManager Instance;
 
     private const string API_URL = "http://localhost:11434/api/generate";
+    private const string TAGS_URL = "http://localhost:11434/api/tags";
+
+    public string currentModel = "gemma3:4b";
     
     private List<string> previousRiddles =
         new List<string>();
@@ -37,6 +40,21 @@ public class OllamaManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+    }
+
+    private void Start()
+    {
+        GetInstalledModels(models =>
+        {
+            foreach (string model in models)
+            {
+                if (model == currentModel)
+                    return;
+            }
+
+            currentModel = models[0];
+            UIManager.Instance.modelName.text = "model: " + currentModel;
+        });
     }
 
     public void GenerateRiddle(Action<RiddleData> callback)
@@ -110,7 +128,8 @@ public class OllamaManager : MonoBehaviour
         
         OllamaRequest requestData = new OllamaRequest
         {
-            model = "gemma3:4b",
+            // model = "gemma3:4b",
+            model = currentModel,
             prompt = prompt,
             stream = false,
 
@@ -230,6 +249,39 @@ public class OllamaManager : MonoBehaviour
 
         return sb.ToString();
     }
+    
+    public void GetInstalledModels(Action<List<string>> callback)
+    {
+        StartCoroutine(GetInstalledModelsCoroutine(callback));
+    }
+
+    IEnumerator GetInstalledModelsCoroutine(Action<List<string>> callback)
+    {
+        UnityWebRequest request = UnityWebRequest.Get(TAGS_URL);
+
+        yield return request.SendWebRequest();
+
+        if (request.result == UnityWebRequest.Result.Success)
+        {
+            string raw = request.downloadHandler.text;
+
+            OllamaModelList modelList = JsonUtility.FromJson<OllamaModelList>(raw);
+
+            List<string> modelNames = new List<string>();
+
+            foreach (OllamaModel m in modelList.models)
+            {
+                modelNames.Add(m.name);
+            }
+
+            callback?.Invoke(modelNames);
+        }
+        else
+        {
+            Debug.LogError("Failed to fetch models: " + request.error);
+            callback?.Invoke(new List<string>());
+        }
+    }
 }
 
 [Serializable]
@@ -254,4 +306,19 @@ public class OllamaOptions
 public class OllamaResponse
 {
     public string response;
+}
+
+[Serializable]
+public class OllamaModelList
+{
+    public OllamaModel[] models;
+}
+
+[Serializable]
+public class OllamaModel
+{
+    public string name;
+    public string model;
+    public long size;
+    public string modified_at;
 }
