@@ -13,6 +13,10 @@ public class UIManager : MonoBehaviour
     [Header("Answers")]
     public TMP_Text[] answerTexts;
     public Button[] answerButtons;
+    
+    [Header("Answer Button Sprites")]
+    public Sprite correctSprite;
+    public Sprite incorrectSprite;
 
     [Header("UI")]
     public TMP_Text resultText;
@@ -24,14 +28,21 @@ public class UIManager : MonoBehaviour
     [Header("Menus")]
     public GameObject hud;
     public GameObject gameOverPanel;
+    
+    private Sprite defaultButtonSprite;
 
     private void Awake()
     {
         Instance = this;
+        defaultButtonSprite = answerButtons[0].GetComponent<Image>().sprite;
     }
     
     public void DisplayRiddle(RiddleData riddle)
     {
+        // Reset button sprites
+        foreach (Button btn in answerButtons)
+            btn.GetComponent<Image>().sprite = defaultButtonSprite;
+        
         questionText.text = riddle.question;
     
         if (riddle.answers == null)
@@ -54,6 +65,22 @@ public class UIManager : MonoBehaviour
     
         resultText.text = "";
     }
+    
+    public void ShowAnswerResult(int selectedIndex, int correctIndex)
+    {
+        for (int i = 0; i < answerButtons.Length; i++)
+        {
+            answerButtons[i].interactable = false;
+
+            Image img = answerButtons[i].GetComponent<Image>();
+
+            if (i == correctIndex)
+                img.sprite = correctSprite;
+            else if (i == selectedIndex)
+                img.sprite = incorrectSprite;
+        }
+    }
+
 
     public void SetResultText(string text)
     {

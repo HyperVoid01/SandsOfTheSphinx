@@ -146,9 +146,10 @@ public class OllamaManager : MonoBehaviour
                 .Replace("```json", "")
                 .Replace("```", "")
                 .Trim();
-            
-            RiddleData data =
-                JsonUtility.FromJson<RiddleData>(cleanJson);
+
+            cleanJson = SanitiseJson(cleanJson);
+
+            RiddleData data = JsonUtility.FromJson<RiddleData>(cleanJson);
             
             if (data == null)
             {
@@ -184,6 +185,50 @@ public class OllamaManager : MonoBehaviour
         {
             Debug.LogError(request.error);
         }
+    }
+    
+    private string SanitiseJson(string json)
+    {
+        // Find only the string values inside the JSON and clean them
+        System.Text.StringBuilder sb = new System.Text.StringBuilder();
+        bool inString = false;
+        bool escaped = false;
+
+        for (int i = 0; i < json.Length; i++)
+        {
+            char c = json[i];
+
+            if (escaped)
+            {
+                // Allow only valid JSON escape sequences
+                if (c == '"' || c == '\\' || c == '/' || c == 'n' ||
+                    c == 'r' || c == 't' || c == 'b' || c == 'f' || c == 'u')
+                {
+                    sb.Append('\\');
+                    sb.Append(c);
+                }
+                else
+                {
+                    // Invalid escape — just keep the character without the backslash
+                    sb.Append(c);
+                }
+                escaped = false;
+                continue;
+            }
+
+            if (c == '\\' && inString)
+            {
+                escaped = true;
+                continue;
+            }
+
+            if (c == '"')
+                inString = !inString;
+
+            sb.Append(c);
+        }
+
+        return sb.ToString();
     }
 }
 

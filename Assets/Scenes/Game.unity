@@ -1315,6 +1315,8 @@ MonoBehaviour:
   - {fileID: 1706528957}
   - {fileID: 1784675081}
   - {fileID: 1360762018}
+  correctSprite: {fileID: 21300000, guid: b63d96aa5c6267a4db4a704b1f8cbedc, type: 3}
+  incorrectSprite: {fileID: 21300000, guid: 8b3f3606945cbaa4c976a8f1ae804c09, type: 3}
   resultText: {fileID: 884125868}
   scoreText: {fileID: 1234221801}
   loadingPanel: {fileID: 1803307959}
@@ -2377,7 +2379,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1360762021}
+      - m_Target: {fileID: 1706528960}
         m_TargetAssemblyTypeName: AnswerButton, Assembly-CSharp
         m_MethodName: Submit
         m_Mode: 1
@@ -2661,7 +2663,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1360762021}
+      - m_Target: {fileID: 1784675084}
         m_TargetAssemblyTypeName: AnswerButton, Assembly-CSharp
         m_MethodName: Submit
         m_Mode: 1
