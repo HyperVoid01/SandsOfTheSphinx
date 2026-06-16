@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -23,6 +24,8 @@ public class UIManager : MonoBehaviour
     public TMP_Text scoreText;
     public GameObject loadingPanel;
     public TMP_Text livesText;
+    public Image liveCounter;
+    public Sprite[] liveSprites;
     public TMP_Text endScoreText;
     public TMP_Text modelName;
     
@@ -86,16 +89,18 @@ public class UIManager : MonoBehaviour
     public void SetResultText(string text)
     {
         resultText.text = text;
+        questionText.text = "";
     }
 
     public void UpdateScore(int score)
     {
-        scoreText.text = "Score: " + score;
+        scoreText.text = score.ToString();
     }
 
     public void UpdateLives(int lives)
     {
         livesText.text = lives.ToString();
+        liveCounter.sprite = liveSprites[lives];
     }
 
     public void ShowLoading(bool show)

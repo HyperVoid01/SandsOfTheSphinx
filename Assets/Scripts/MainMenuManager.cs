@@ -7,6 +7,7 @@ public class MainMenuManager : MonoBehaviour
 {
     [SerializeField] private GameObject mainMenu;
     [SerializeField] private GameObject settingsMenu;
+    [SerializeField] private GameObject tutorialMenu;
     
     [SerializeField] private PlayerData playerData;
     [SerializeField] private Slider musicSlider;
@@ -15,7 +16,7 @@ public class MainMenuManager : MonoBehaviour
 
     private void Start()
     {
-        highScoreText.text = "HIGHSCORE\n" + playerData.highScore.ToString();
+        highScoreText.text = playerData.highScore.ToString();
 
         musicSlider.value = playerData.musicVolume;
         sfxSlider.value = playerData.sfxVolume;
@@ -50,6 +51,15 @@ public class MainMenuManager : MonoBehaviour
         
         mainMenu.SetActive(true);
         settingsMenu.SetActive(false);
+        tutorialMenu.SetActive(false);
+    }
+
+    public void ShowTutorial()
+    {
+        AudioManager.Instance.Play("ButtonClick");
+        
+        mainMenu.SetActive(false);
+        tutorialMenu.SetActive(true);
     }
 
     private void UpdateVolume()
