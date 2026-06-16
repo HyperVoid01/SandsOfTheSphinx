@@ -310,3 +310,146 @@ Example:
 
 ```text
 Generate a UNIQUE Egyptian sphinx riddle.
+```
+
+---
+
+# 9. UI & UX Refinements
+
+## Tutorial Screen Added
+
+### Scope Change
+A tutorial screen was added to the main menu to help new players understand the game's mechanics before starting.
+
+### New Features
+- Dedicated tutorial panel accessible from the main menu
+- Question mark button on the main menu opens the tutorial screen
+- Tutorial explains core rules: riddle answering, lives system, and scoring
+
+### Reason For Change
+New players had no in-game guidance on how to play.
+
+The tutorial screen improved:
+- Onboarding experience
+- Player clarity
+- Accessibility for first-time players
+
+### Technical Changes
+Added:
+- Tutorial UI panel
+- Question mark button with onClick event
+- Panel show/hide logic
+
+---
+
+## Game UI Redesign
+
+### Scope Change
+The in-game UI layout for riddle questions and answer choices was redesigned.
+
+### Changes Made
+- Question text now properly fits within its border container
+- Answer button text now properly fits within its border containers
+- Text overflow and clipping issues resolved
+
+### Reason For Change
+Previously, long riddle questions and answer text would overflow or clip outside their UI boundaries, reducing readability and visual polish.
+
+The redesign improved:
+- Text legibility
+- Visual consistency
+- Overall UI cleanliness
+
+### Technical Changes
+Updated:
+- Text component sizing and wrapping settings
+- Layout element constraints on question and answer containers
+- Content size fitter adjustments where applicable
+
+---
+
+## Lives Display Replaced With Ankh Icons
+
+### Scope Change
+The numerical lives counter was replaced with Ankh icon images to represent remaining lives.
+
+### Changes Made
+- Three Ankh icons displayed as the life indicator
+- Ankhs are hidden or visually deactivated as lives are lost
+- Removed plain numeric text life counter
+
+### Reason For Change
+The numeric counter did not align with the Egyptian theme aesthetic.
+
+The Ankh icons improved:
+- Thematic consistency
+- Visual atmosphere
+- Player immersion
+
+### Technical Changes
+Updated:
+- Life UI system to toggle Ankh image GameObjects instead of updating text
+- Ankh icons added as UI Image elements
+- Life deduction logic updated to deactivate corresponding Ankh images
+
+---
+
+## Custom Mouse Cursor Added
+
+### Scope Change
+A custom mouse cursor was implemented to replace the default system cursor.
+
+### Changes Made
+- Custom cursor image applied throughout the game
+- Cursor reflects the Egyptian theme of the project
+
+### Reason For Change
+The default system cursor broke visual immersion and felt inconsistent with the game's themed presentation.
+
+The custom cursor improved:
+- Thematic immersion
+- Visual polish
+- Overall presentation quality
+
+### Technical Changes
+Implemented:
+- Cursor.SetCursor() call on game initialisation
+- Custom cursor texture assigned in the Unity Inspector
+- Hotspot configured for accurate click registration
+
+---
+
+# 10. Compatibility Improvements
+
+## Dynamic AI Model Detection
+
+### Scope Change
+The game was updated to automatically detect which Ollama AI models the player has installed and select the most suitable one at runtime.
+
+### New Features
+- Game queries the local Ollama API for installed models on startup
+- Installed models are evaluated and ranked by suitability for riddle generation
+- Best available model is automatically selected
+- Fallback handling if no compatible model is found
+
+### Reason For Change
+Previously the game was hardcoded to use gemma3:4b, which required players to have that specific model installed. Players with different models installed could not use the game without manually modifying settings.
+
+The dynamic detection improved:
+- Player compatibility across different hardware setups
+- Flexibility for players who have alternative models installed
+- Resilience against missing or renamed model versions
+
+### Technical Changes
+Implemented:
+- HTTP GET request to Ollama `/api/tags` endpoint on startup
+- JSON parsing of returned model list
+- Model scoring and selection logic based on name matching and preference priority
+- Selected model passed dynamically into all riddle generation requests
+- Error handling for cases where Ollama is not running or no models are available
+
+### AI-Assisted Decisions
+AI assistance was used to:
+- Design the model detection and ranking logic
+- Structure the compatibility fallback system
+- Improve robustness of the model selection pipeline
